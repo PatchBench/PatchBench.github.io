@@ -1,0 +1,81 @@
+# Site-wide metadata. Everything shown in the header, hero and citation
+# comes from here; edit this file rather than the templates.
+
+title: PatchBench
+subtitle: Evaluating AI Agents for Vulnerability Patching
+description: >-
+  PatchBench is a C/C++ repository-level vulnerability patching benchmark
+  that mitigates patch memorization and validates both the security and the
+  semantic correctness of agent patches.
+lede: >-
+  Most patching benchmarks accept a patch once the original proof-of-concept
+  stops crashing. PatchBench hides the root cause off the crash stack,
+  transplants and mutates each vulnerability so memorized fixes no longer
+  apply, and checks that a patch behaves correctly on both vulnerable and
+  benign inputs.
+affiliation: University of Maryland
+
+# Add `url:` to link an author's name to their homepage.
+authors:
+  - name: Chihao Shen
+    url: https://stevenshen3641.github.io/
+  - name: Jiacheng Li
+    url: https://www.cs.umd.edu/people/jiacli
+  - name: Aastha Mahajan
+    url: https://scholar.google.com/citations?user=wz0luiIAAAAJ&hl=en
+  - name: Jeffery Siyuan Tian
+    url: https://scholar.google.com/citations?user=vatoNKwAAAAJ
+  - name: Yonghwi Kwon
+    url: https://yonghwi-kwon.github.io/
+  - name: Yizheng Chen
+    url: https://surrealyz.github.io/
+
+links:
+  paper: https://arxiv.org/abs/2609.04075
+  pdf: https://arxiv.org/pdf/2609.04075
+  code: https://github.com/ai-sec-lab/PatchBench
+  dataset: https://huggingface.co/datasets/ai-sec-lab/PatchBench
+  issues: https://github.com/ai-sec-lab/PatchBench/issues
+
+# Headline numbers. `agents` and `inflation` are computed from
+# data/leaderboard.yaml at build time, so they are not listed here.
+stats:
+  tasks: 213
+  projects: 32
+  cwes: 16
+  budget_per_task_usd: 5
+
+# The example card next to the title: CVE-2022-1276 in mruby (paper Figure 3).
+example:
+  cve: CVE-2022-1276
+  project: mruby
+  headline: crash in the VM, bug in the compiler
+  agent:
+    file: src/class.c
+    where: crash site
+    function: mrb_get_args
+    lines:
+      - [ctx, "argv_on_stack = argc < 15;"]
+      - [ctx, "if (!argv_on_stack) {"]
+      - [add, "  if (!mrb_array_p(*argv))"]
+      - [add, "    mrb_argnum_error(mrb, argc, argc_min, argc_max);"]
+      - [ctx, "  struct RArray *a = mrb_ary_ptr(*argv);"]
+  reference:
+    file: mrbgems/mruby-compiler/core/codegen.c
+    short_file: …/mruby-compiler/core/codegen.c   # shown in the card; full path on hover
+    where: root cause
+    function: gen_assignment
+    lines:
+      - [ctx, "if (tree->cdr->car) {"]
+      - [del, "  if (n == 14) {"]
+      - [add, "  if (n == 13) {"]
+      - [ctx, "    pop_n(n);"]
+
+bibtex: |-
+  @misc{shen2026PatchBench,
+    title = {{{PatchBench}}: Evaluating {{AI}} Agents for Vulnerability Patching},
+    author = {Shen, Chihao and Li, Jiacheng and Mahajan, Aastha and Tian, Jeffery Siyuan and Kwon, Yonghwi and Chen, Yizheng},
+    year = 2026,
+    number = {arXiv:2609.04075},
+    eprint = {2609.04075}
+  }

@@ -1,0 +1,139 @@
+# PatchBench leaderboard (paper Table 2 and Figure 7).
+# All rates are percentages over the 213 tasks; costs are average USD per task
+# under the $5 per-task budget. Row order does not matter: the build sorts by
+# `solved`.
+#
+# type:   general = general-purpose coding agent, crs = AIxCC cyber reasoning system
+# chart:  label placement on the cost-vs-solved scatter (right|left|above|below),
+#         omit to leave the point unlabeled (it still has a tooltip).
+
+agents:
+  - agent: Codex
+    model: GPT-5.6 Sol
+    type: general
+    solved: 59.2
+    poc: 97.2
+    security: 81.7
+    semantic: 70.9
+    budget_exhausted: 6.6
+    avg_cost: 1.50
+    chart: right
+
+  - agent: OpenHands
+    model: GPT-5.6 Sol
+    type: general
+    solved: 58.2
+    poc: 98.1
+    security: 81.2
+    semantic: 70.0
+    budget_exhausted: 1.4
+    avg_cost: 0.90
+    chart: left
+
+  - agent: Claude Code
+    model: Claude Opus 4.8
+    type: general
+    solved: 56.8
+    poc: 97.7
+    security: 75.6
+    semantic: 68.1
+    budget_exhausted: 8.9
+    avg_cost: 1.53
+    chart: right
+
+  - agent: Atlantis
+    team: Team Atlanta
+    url: https://github.com/Team-Atlanta/aixcc-afc-atlantis
+    model: GPT-5.6 Sol + Claude Opus 4.8
+    type: crs
+    solved: 48.4
+    poc: 92.0
+    security: 70.9
+    semantic: 66.7
+    budget_exhausted: 11.7
+    avg_cost: 16.63
+    note: >-
+      Atlantis runs four concurrent nodes with a $5 cap each ($20 in total),
+      so it is not directly comparable to other agents.
+    chart: left
+
+  - agent: OpenHands
+    model: Claude Opus 4.8
+    type: general
+    solved: 47.9
+    poc: 93.0
+    security: 71.8
+    semantic: 62.0
+    budget_exhausted: 8.5
+    avg_cost: 1.43
+    chart: right
+
+  - agent: OpenHands
+    model: Gemini 3.5 Flash
+    type: general
+    solved: 44.1
+    poc: 77.9
+    security: 61.0
+    semantic: 64.8
+    budget_exhausted: 5.6
+    avg_cost: 1.35
+    chart: right
+
+  - agent: Buttercup
+    team: Trail of Bits
+    url: https://github.com/trailofbits/afc-buttercup
+    model: GPT-5.6 Sol
+    type: crs
+    solved: 42.7
+    poc: 72.3
+    security: 58.2
+    semantic: 64.8
+    budget_exhausted: 7.0
+    avg_cost: 2.42
+    chart: above
+
+  - agent: OpenHands
+    model: GPT-5
+    type: general
+    solved: 42.3
+    poc: 96.2
+    security: 70.0
+    semantic: 56.8
+    budget_exhausted: 0.0
+    avg_cost: 0.37
+    chart: right
+
+  - agent: OpenHands
+    model: Claude Sonnet 4.5
+    type: general
+    solved: 38.0
+    poc: 85.9
+    security: 65.3
+    semantic: 61.0
+    budget_exhausted: 2.8
+    avg_cost: 1.60
+    chart: right
+
+  - agent: OpenHands
+    model: Gemini 3.1 Pro
+    type: general
+    solved: 31.5
+    poc: 57.7
+    security: 48.8
+    semantic: 60.6
+    budget_exhausted: 8.9
+    avg_cost: 1.23
+    chart: left
+
+  - agent: RoboDuck
+    team: Team Theori
+    url: https://github.com/theori-io/aixcc-afc-archive
+    model: GPT-5.6 Sol
+    type: crs
+    solved: 29.6
+    poc: 46.5
+    security: 39.9
+    semantic: 51.6
+    budget_exhausted: 2.3
+    avg_cost: 1.30
+    chart: right

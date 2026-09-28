@@ -1,0 +1,180 @@
+# Content for the Benchmark page and the Findings section.
+
+findings:
+  - title: PoC-only validation inflates solve rates by 1.83×.
+    body: >-
+      Averaged over all agents, 83.1% of patches stop the original PoC crash,
+      but only 45.3% of tasks are solved. Four agents pass 96–98% of PoCs while
+      their solved rates span 17 points, and OpenHands + GPT-5 ranks fourth by
+      PoC pass rate but eighth by solved rate.
+  - title: Semantic validation is the main bottleneck.
+    body: >-
+      Agents pass 63.4% of semantic validation on average. New sanitizer errors
+      are rare (95.7% pass), so most failures come from mismatched output state
+      (75.5% pass) and broken unit tests (79.9% pass).
+  - title: More budget barely helps.
+    body: >-
+      Raising the per-task cap from $5 to $25 lifts Codex + GPT-5.6 Sol from
+      59.2% to 61.5%, where it plateaus. At $25 no agent runs out of budget on
+      more than 1.4% of tasks, yet 67 tasks remain unsolved by every agent.
+
+# Share of patches with DiffBLEU > 0.75 (flagged as likely memorized),
+# paper Section 3.3 and Appendix A.6.
+memorization:
+  threshold: 0.75
+  series:
+    - key: llm
+      name: Model alone, SEC-bench
+    - key: agent_secbench
+      name: Agent, SEC-bench
+    - key: agent_patchbench
+      name: Agent, PatchBench
+  groups:
+    - family: GPT-5.6 Sol
+      agent: Codex
+      llm: 8.3
+      agent_secbench: 22.0
+      agent_patchbench: 0.0
+    - family: Claude Opus 4.8
+      agent: Claude Code
+      llm: 10.7
+      agent_secbench: 27.7
+      agent_patchbench: 1.4
+    - family: Gemini 3.5 Flash
+      agent: OpenHands
+      llm: 13.0
+      agent_secbench: 24.3
+      agent_patchbench: 0.9
+
+construction:
+  - title: Identify developer patch sites
+    body: >-
+      Map every code entity touched by the historical developer patch (from
+      ARVO) to the functions it affects during PoC execution.
+  - title: Measure distance from the crash stack
+    body: >-
+      Compare the call stack when execution first reaches a patch site with
+      the sanitizer crash stack, using their Jaccard overlap ρ.
+  - title: Keep off-stack tasks
+    body: >-
+      Retain only vulnerabilities whose patch sites fall off the crash trace
+      with ρ ≤ ½, so following the stack trace does not reveal the fix.
+  - title: Transplant the vulnerability
+    body: >-
+      Reverse the developer patch and bisect for the newest commit where the
+      vulnerability still applies, compiles and reproduces.
+  - title: Mutate the patch sites
+    body: >-
+      Apply NatGen's five semantics-preserving rewrites and one CodeMorph
+      restructuring per hunk, so a memorized historical patch no longer fits.
+  - title: Curate the reference patch
+    body: >-
+      Manually audit every fix. Discard tasks whose patch misses the root
+      cause, and strip changes unrelated to the vulnerability.
+  - title: Keep tasks that support validation
+    body: >-
+      Require a working fuzzer for the harness and a unit-test suite that
+      builds and passes on the reference-patched repository.
+
+validation:
+  security:
+    title: Security validation
+    summary: >-
+      The patch must eliminate the vulnerability, not just the one PoC.
+    checks:
+      - name: Crashing corpus
+        body: >-
+          PoC variants from directed fuzzing (ConcFuzz, seeded with the PoC)
+          and the project's OSS-Fuzz engine, 10 minutes each. A median of 33
+          variants per task come from the directed stage. No input may trigger
+          a sanitizer error on the agent-patched build.
+  semantic:
+    title: Semantic validation
+    summary: >-
+      The patch must preserve the reference-patched program's behavior on
+      benign inputs.
+    checks:
+      - name: Sanitizer regression
+        body: No benign input may trigger a new sanitizer error.
+      - name: Output state
+        body: >-
+          Program-level output on each benign input must match the
+          reference-patched build.
+      - name: Unit tests
+        body: >-
+          Every unit test that passes on the reference-patched repository must
+          also pass.
+
+# Paper Table 1. Marks: full | partial | none | unknown
+comparison:
+  columns:
+    - key: additional_poc
+      name: Additional PoC
+      note: Extra PoCs from directed and undirected fuzzing (partial = undirected only).
+    - key: sanitizer_regression
+      name: Sanitizer regression
+      note: Checks benign inputs for new sanitizer errors.
+    - key: output_state
+      name: Output state
+      note: Program-level output state check (partial = function-level).
+    - key: unit_test
+      name: Unit tests
+      note: Runs the project's unit tests.
+  rows:
+    - name: ExtractFix
+      projects: 3
+      tasks: 30
+      memorization: None
+      additional_poc: none
+      sanitizer_regression: none
+      output_state: none
+      unit_test: none
+    - name: AIxCC AFC
+      projects: 14
+      tasks: 40
+      memorization: Manual
+      additional_poc: unknown
+      sanitizer_regression: unknown
+      output_state: none
+      unit_test: full
+    - name: AutoPatchBench
+      projects: 46
+      tasks: 136
+      memorization: None
+      additional_poc: partial
+      sanitizer_regression: full
+      output_state: partial
+      unit_test: none
+    - name: San2Vuln
+      projects: 4
+      tasks: 27
+      memorization: None
+      additional_poc: none
+      sanitizer_regression: none
+      output_state: none
+      unit_test: full
+    - name: PatchAgent
+      projects: 30
+      tasks: 178
+      memorization: None
+      additional_poc: none
+      sanitizer_regression: none
+      output_state: none
+      unit_test: full
+    - name: SEC-bench
+      projects: 29
+      tasks: 300
+      memorization: None
+      additional_poc: none
+      sanitizer_regression: none
+      output_state: none
+      unit_test: none
+    - name: PatchBench
+      projects: 32
+      tasks: 213
+      memorization: Transplant & mutation
+      additional_poc: full
+      sanitizer_regression: full
+      output_state: full
+      unit_test: full
+      highlight: true

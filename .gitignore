@@ -1,0 +1,9 @@
+.venv/
+venv/
+env/
+.*/
+!.github/
+# build output
+dist/
+__pycache__/
+.DS_Store

@@ -1,0 +1,113 @@
+{# Shared building blocks. Chart geometry is computed in build.py. #}
+
+{% macro section_head(number, kicker, title, lede=None) %}
+<header class="section-head">
+  <p class="section-kicker"><span class="section-num">§&thinsp;{{ number }}</span>{{ kicker }}</p>
+  <h2 class="section-title">{{ title }}</h2>
+  {% if lede %}<p class="section-lede">{{ lede }}</p>{% endif %}
+</header>
+{% endmacro %}
+
+{# Tooltip data: rows are [label, value, css-color-var or none]. #}
+{% macro tip(title, rows) -%}
+data-tip-title="{{ title }}" data-tip='{{ rows|tojson }}'
+{%- endmacro %}
+
+{% macro diff_pane(pane, label, verdict, verdict_class) %}
+<div class="diff-pane">
+  <p class="sr-only">{{ label }}</p>
+  <div class="diff-head">
+    <span class="diff-file" title="{{ pane.file }}">{{ pane.get("short_file", pane.file) }}</span>
+    <span class="diff-where">{{ pane.where }} · <code>{{ pane.function }}</code></span>
+  </div>
+  <pre class="diff-body"><code>{% for kind, text in pane.lines %}<span class="diff-line diff-{{ kind }}"><span class="diff-sign" aria-hidden="true">{{ '+' if kind == 'add' else ('−' if kind == 'del' else ' ') }}</span>{{ text }}</span>{% endfor %}</code></pre>
+  <p class="diff-verdict {{ verdict_class }}">{{ verdict }}</p>
+</div>
+{% endmacro %}
+
+{% macro diff_card(ex) %}
+<figure class="diff-card">
+  <figcaption class="diff-caption">
+    <span class="diff-cve">{{ ex.cve }}</span>
+    <span>{{ ex.project }} · {{ ex.headline }}</span>
+  </figcaption>
+  {{ diff_pane(ex.agent, "Agent patch", "✗ Stops the reported crash, but the wrong argument packing remains.", "is-bad") }}
+  {{ diff_pane(ex.reference, "Reference patch", "✓ Fixes the packing condition in the compiler, where the bug is.", "is-good") }}
+</figure>
+{% endmacro %}
+
+{% macro legend(items, shape="dot") %}
+<ul class="legend">
+  {% for item in items %}
+  <li><span class="legend-key legend-{{ shape }}" style="--c: var({{ item.color }})"></span>{{ item.name }}</li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
+{% macro cost_scatter(c) %}
+<div class="chart-scroll">
+<svg class="chart chart-scatter" viewBox="0 0 {{ c.width }} {{ c.height }}" role="img"
+     aria-label="Scatter plot of solved rate against average cost per task for each agent. The same values are in the leaderboard table.">
+  <g class="grid">
+    {% for t in c.y_ticks %}
+      {% for s in c.segments %}<line x1="{{ s.x0 }}" x2="{{ s.x1 }}" y1="{{ t.y }}" y2="{{ t.y }}"/>{% endfor %}
+    {% endfor %}
+  </g>
+  <g class="axis">
+    {% for s in c.segments %}<line x1="{{ s.x0 }}" x2="{{ s.x1 }}" y1="{{ c.plot.bottom }}" y2="{{ c.plot.bottom }}"/>{% endfor %}
+    <path class="axis-break" d="M{{ c.break_x - 7 }},{{ c.plot.bottom + 6 }}l6,-12M{{ c.break_x + 1 }},{{ c.plot.bottom + 6 }}l6,-12"/>
+  </g>
+  <g class="ticks">
+    {% for t in c.y_ticks %}<text x="{{ c.plot.left - 10 }}" y="{{ t.y + 4 }}" text-anchor="end">{{ t.label }}</text>{% endfor %}
+    {% for t in c.x_ticks %}<text x="{{ t.x }}" y="{{ c.plot.bottom + 20 }}" text-anchor="middle">{{ t.label }}</text>{% endfor %}
+  </g>
+  <text class="axis-title" x="{{ (c.plot.left + c.plot.right) / 2 }}" y="{{ c.height - 6 }}" text-anchor="middle">Average cost per task (USD)</text>
+  <g class="points">
+    {% for p in c.points %}
+    <g class="point" tabindex="0" {{ tip(p.title, p.tip) }}>
+      <circle class="hit" cx="{{ p.cx }}" cy="{{ p.cy }}" r="13"/>
+      <circle class="dot" cx="{{ p.cx }}" cy="{{ p.cy }}" r="5.5" style="fill: var({{ p.color }})"/>
+    </g>
+    {% endfor %}
+  </g>
+  <g class="labels" aria-hidden="true">
+    {% for p in c.points if p.label %}
+    <text x="{{ p.label.x }}" y="{{ p.label.y }}" text-anchor="{{ p.label.anchor }}">{{ p.label.text }}</text>
+    {% endfor %}
+  </g>
+</svg>
+</div>
+{% endmacro %}
+
+{% macro memorization_chart(c) %}
+<div class="chart-scroll">
+<svg class="chart chart-bars" viewBox="0 0 {{ c.width }} {{ c.height }}" role="img"
+     aria-label="Grouped bar chart of the percentage of patches flagged as memorized, per model family and setting.">
+  <g class="grid">
+    {% for t in c.x_ticks %}<line x1="{{ t.x }}" x2="{{ t.x }}" y1="{{ c.top }}" y2="{{ c.bottom }}"/>{% endfor %}
+  </g>
+  <g class="axis"><line x1="{{ c.left }}" x2="{{ c.left }}" y1="{{ c.top }}" y2="{{ c.bottom }}"/></g>
+  <g class="ticks">
+    {% for t in c.x_ticks %}<text x="{{ t.x }}" y="{{ c.bottom + 20 }}" text-anchor="middle">{{ t.label }}</text>{% endfor %}
+  </g>
+  {% for g in c.groups %}
+  <g class="group">
+    <text class="group-label" x="{{ c.left - 14 }}" y="{{ g.cy - 2 }}" text-anchor="end">{{ g.family }}</text>
+    <text class="group-sub" x="{{ c.left - 14 }}" y="{{ g.cy + 14 }}" text-anchor="end">with {{ g.agent }}</text>
+    {% for b in g.bars %}
+    <g class="bar" tabindex="0" {{ tip(g.title, b.tip) }}>
+      <rect class="hit" x="{{ c.left }}" y="{{ b.hit_y }}" width="{{ c.right - c.left }}" height="{{ c.bar_h + 2 }}"/>
+      {% if b.path %}<path d="{{ b.path }}" style="fill: var({{ b.color }})"/>{% endif %}
+      <text class="value" x="{{ b.label_x }}" y="{{ b.label_y }}">{{ b.value }}</text>
+    </g>
+    {% endfor %}
+  </g>
+  {% endfor %}
+</svg>
+</div>
+{% endmacro %}
+
+{% macro mark(value) %}
+{%- set glyphs = {"full": ("●", "Yes"), "partial": ("◐", "Partial"), "none": ("○", "No"), "unknown": ("–", "Not reported")} -%}
+<span class="mark mark-{{ value }}" title="{{ glyphs[value][1] }}"><span aria-hidden="true">{{ glyphs[value][0] }}</span><span class="sr-only">{{ glyphs[value][1] }}</span></span>
+{%- endmacro %}

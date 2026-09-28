@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Contribute · {{ site.title }}{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <div class="wrap">
+    <p class="eyebrow">Contribute</p>
+    <h1 class="page-title">Add your agent to the leaderboard.</h1>
+    <p class="lede">Built a patching agent, or tried a new model with an existing one? Run it on the PatchBench tasks and send us the patches and reports from that run. The <a href="{{ site.links.code }}" rel="noopener">PatchBench repository</a> has a harness and step-by-step instructions to get you started. After we check them, your agent appears in the table next to the {{ board.count }} systems from the paper.</p>
+  </div>
+</section>
+
+<section class="section section-tight">
+  <div class="wrap contrib-grid">
+    <article id="rules" class="contrib-card">
+      <p class="section-kicker"><span class="section-num">§&thinsp;01</span>Rules</p>
+      <h2 class="contrib-title">Tell us how you ran it.</h2>
+      <p>Evaluate your agent on all {{ site.stats.tasks }} tasks. Keep a record of the setup you used, such as the exact model version, the reasoning settings, any time or budget limits, and any changes to the agent or its prompt.</p>
+      <p>The agent must not have web access during the run, since it could look up the historical fixes.</p>
+      <p>When you submit, also tell us how the agent and model should be named in the table, the version or commit you ran, a link to the project or paper, whether the code is open source, and the average cost per task.</p>
+    </article>
+
+    <article id="package" class="contrib-card">
+      <p class="section-kicker"><span class="section-num">§&thinsp;02</span>Package</p>
+      <h2 class="contrib-title">Bundle the output of your run.</h2>
+      <p>Send us three things from your run. If you used the PatchBench harness, they are already in its out folder.</p>
+      <dl class="contrib-list">
+        <div><dt><code>out/diffs/</code></dt><dd>The patch your agent produced for each task.</dd></div>
+        <div><dt><code>out/results/</code></dt><dd>The per-task verdicts and <code>summary.csv</code> written by <code>analyze</code>.</dd></div>
+        <div><dt><code>out/logs/infer/</code></dt><dd>The full trajectory of the agent on each task.</dd></div>
+      </dl>
+    </article>
+
+    <article id="submit" class="contrib-card contrib-card-wide">
+      <p class="section-kicker"><span class="section-num">§&thinsp;03</span>Submit</p>
+      <h2 class="contrib-title">Send it to us as a GitHub issue.</h2>
+      <p>Upload the archive anywhere we can download it from, then open an issue in the PatchBench repository with the link and the details of your entry. We rerun the validation stages on your patches before adding the row, and we will ask in the issue if anything is unclear. The same place works for questions about the benchmark, the harness or a result in the table.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="{{ site.links.issues }}" rel="noopener">Open an issue <span aria-hidden="true">↗</span></a>
+        <a class="btn" href="{{ site.links.code }}" rel="noopener">Repository <span aria-hidden="true">↗</span></a>
+        <a class="btn" href="{{ site.links.dataset }}" rel="noopener">Dataset <span aria-hidden="true">↗</span></a>
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% from "macros.html" import section_head, diff_card, legend, cost_scatter, tip %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">C/C++ vulnerability patching</p>
+      <h1 class="display">{{ site.title }}</h1>
+      <p class="subtitle">{{ site.subtitle }}</p>
+      <p class="lede">{{ site.lede }}</p>
+      <p class="byline">
+        {% for a in site.authors %}{% if a.get("url") %}<a class="author" href="{{ a.url }}" rel="noopener">{{ a.name }}</a>{% else %}<span class="author">{{ a.name }}</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+        <br><span class="affiliation">{{ site.affiliation }}</span>
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="{{ site.links.paper }}" rel="noopener">Read the paper</a>
+        <a class="btn" href="{{ site.links.pdf }}" rel="noopener">PDF</a>
+        <a class="btn" href="{{ site.links.code }}" rel="noopener">Code &amp; data</a>
+        <a class="btn btn-quiet" href="#cite">Cite</a>
+      </div>
+    </div>
+    {{ diff_card(site.example) }}
+  </div>
+
+  <div class="wrap">
+    <dl class="stats">
+      <div class="stat"><dt>Patching tasks</dt><dd>{{ site.stats.tasks }}</dd></div>
+      <div class="stat"><dt>Real-world projects</dt><dd>{{ site.stats.projects }}</dd></div>
+      <div class="stat"><dt>CWE types</dt><dd>{{ site.stats.cwes }}</dd></div>
+      <div class="stat"><dt>Agents evaluated</dt><dd>{{ board.count }}</dd></div>
+      <div class="stat stat-accent"><dt>PoC-only inflation</dt><dd>{{ "%.2f"|format(board.inflation) }}×</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section id="leaderboard" class="section">
+  <div class="wrap">
+    {{ section_head("01", "Leaderboard", "Passing the PoC is not the same as fixing the bug.",
+       "A task counts as solved only when the patch passes security validation on every PoC variant and semantic validation on benign inputs. Each bar ends at the rate an original-PoC-only check would report.") }}
+
+    <div class="board" data-board>
+      <div class="controls" role="group" aria-label="Leaderboard options">
+        <div class="seg-control" role="group" aria-label="Filter agents">
+          <button type="button" data-filter="all" aria-pressed="true">All agents</button>
+          <button type="button" data-filter="general" aria-pressed="false">General-purpose</button>
+          <button type="button" data-filter="crs" aria-pressed="false">AIxCC CRS</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="board-table">
+          <caption class="sr-only">PatchBench results, sorted by solved rate</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="col-rank">#</th>
+              <th scope="col" class="col-agent">Agent</th>
+              <th scope="col" class="num" aria-sort="descending"><button type="button" data-sort="solved">Solved</button></th>
+              <th scope="col" class="col-funnel">
+                <span class="funnel-legend" aria-hidden="true">
+                  <span><i style="--c: var(--funnel-1)"></i>Solved</span>
+                  <span><i style="--c: var(--funnel-2)"></i>Security</span>
+                  <span><i style="--c: var(--funnel-3)"></i>PoC</span>
+                </span>
+                <span class="sr-only">Solved, security pass and PoC pass rates</span>
+              </th>
+              <th scope="col" class="num"><button type="button" data-sort="poc">PoC pass</button></th>
+              <th scope="col" class="num"><button type="button" data-sort="security">Security</button></th>
+              <th scope="col" class="num"><button type="button" data-sort="semantic">Semantic</button></th>
+              <th scope="col" class="num"><button type="button" data-sort="avg_cost">Cost</button></th>
+              <th scope="col" class="num"><button type="button" data-sort="budget_exhausted">Budget exhausted</button></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in board.agents %}
+            <tr data-type="{{ a.type }}" data-rank="{{ a.rank }}"
+                {% for k in ["solved", "poc", "security", "semantic", "avg_cost", "budget_exhausted"] %} data-{{ k }}="{{ a[k] }}"{% endfor %}>
+              <td class="col-rank">{{ a.rank }}</td>
+              <td class="col-agent">
+                <div class="agent">
+                  {% if a.type == "general" %}
+                    <span class="agent-name">{{ a.agent }}</span>
+                    <span class="agent-meta">{{ a.model }}</span>
+                  {% else %}
+                    <span class="agent-name">
+                      {% if a.url %}<a href="{{ a.url }}" rel="noopener">{{ a.agent }}</a>{% else %}{{ a.agent }}{% endif %}
+                      <span class="tag">AIxCC CRS</span>{% if a.note %}<sup class="fn-ref"><a href="#note-{{ a.rank }}" aria-label="Note">†</a></sup>{% endif %}
+                    </span>
+                    <span class="agent-meta">{{ a.team }} · {{ a.model }}</span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="num solved">{{ a.solved|pct }}</td>
+              <td class="col-funnel">
+                <div class="funnel" tabindex="0" role="img"
+                     aria-label="Solved {{ a.solved|pct }}%, security pass {{ a.security|pct }}%, PoC pass {{ a.poc|pct }}%"
+                     {{ tip(a.display, [["Solved", a.solved|pct ~ "%", "--funnel-1"], ["Security pass", a.security|pct ~ "%", "--funnel-2"], ["PoC pass", a.poc|pct ~ "%", "--funnel-3"]]) }}>
+                  <span style="--w: {{ a.solved }}%; --c: var(--funnel-1)"></span>
+                  <span style="--w: {{ (a.security - a.solved)|round(1) }}%; --c: var(--funnel-2)"></span>
+                  <span style="--w: {{ (a.poc - a.security)|round(1) }}%; --c: var(--funnel-3)"></span>
+                </div>
+              </td>
+              <td class="num">{{ a.poc|pct }}</td>
+              <td class="num">{{ a.security|pct }}</td>
+              <td class="num">{{ a.semantic|pct }}</td>
+              <td class="num">{{ a.avg_cost|usd }}{% if a.note %}<sup class="fn-ref" aria-hidden="true">†</sup>{% endif %}</td>
+              <td class="num">{{ a.budget_exhausted|pct }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td></td>
+              <th scope="row" class="col-agent">Average of {{ board.count }} agents</th>
+              <td class="num solved">{{ board.average.solved|pct }}</td>
+              <td class="col-funnel"></td>
+              <td class="num">{{ board.average.poc|pct }}</td>
+              <td class="num">{{ board.average.security|pct }}</td>
+              <td class="num">{{ board.average.semantic|pct }}</td>
+              <td class="num"><span aria-hidden="true">–</span><span class="sr-only">Not averaged</span></td>
+              <td class="num">{{ board.average.budget_exhausted|pct }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="board-notes">
+        <p>All rates are percentages of the {{ site.stats.tasks }} tasks, with a ${{ site.stats.budget_per_task_usd }} budget per task and web access disabled. <em>Cost</em> is the average cost per task in USD. <em>Budget exhausted</em> is the percentage of tasks where the agent hit the budget cap.</p>
+        <ol class="footnotes">
+          {% for a in board.notes %}<li id="note-{{ a.rank }}"><span aria-hidden="true">†</span> {{ a.note }}</li>{% endfor %}
+        </ol>
+      </div>
+
+      <p class="board-cta"><a class="btn" href="contribute.html">Add your agent to the leaderboard <span aria-hidden="true">→</span></a></p>
+    </div>
+  </div>
+</section>
+
+<section id="cost" class="section">
+  <div class="wrap">
+    {{ section_head("02", "Cost", "Spending more doesn't buy a better patch.",
+       "Solved rate against average spend per task. The top agent, Codex + GPT-5.6 Sol, solves 59.2% of tasks at an average of $1.50 per task. Some other agents spend more per task yet solve fewer tasks.") }}
+    <figure class="figure">
+      {{ legend(charts.cost.legend) }}
+      {{ cost_scatter(charts.cost) }}
+      <figcaption>Atlantis runs four $5 nodes, so its axis segment is broken off to the right. Hover or focus a point to see its values. All values are also in the table above.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="findings" class="section">
+  <div class="wrap">
+    {{ section_head("03", "Findings", "What the leaderboard tells us.") }}
+    <ol class="findings">
+      {% for f in bench.findings %}
+      <li class="finding">
+        <span class="finding-num" aria-hidden="true">{{ "%02d"|format(loop.index) }}</span>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.body }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    <p class="more"><a class="btn" href="benchmark.html">How the benchmark is built <span aria-hidden="true">→</span></a></p>
+  </div>
+</section>
+
+<section id="cite" class="section">
+  <div class="wrap">
+    {{ section_head("04", "Citation", "Cite PatchBench") }}
+    <div class="cite-block">
+      <pre id="bibtex"><code>{{ site.bibtex }}</code></pre>
+      <button class="btn btn-small" type="button" data-copy="#bibtex">Copy BibTeX</button>
+    </div>
+  </div>
+</section>
+{% endblock %}
