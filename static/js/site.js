@@ -26,7 +26,7 @@
   const loaded = document.readyState === "complete"
     ? Promise.resolve()
     : new Promise((resolve) => window.addEventListener("load", resolve, { once: true }));
-  // Opened at a section (e.g. index.html#leaderboard from another page): the
+  // Opened at a section (e.g. the Leaderboard link from another page): the
   // browser jumps there before fonts load, so line the section up again once
   // layout has settled, just before the content fades in.
   const alignToHash = () => {

@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import functools
 import http.server
+import os
 import shutil
 import threading
 import time
@@ -296,6 +297,13 @@ def _watch(interval: float = 0.5) -> None:
 class _QuietHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format, *args):  # noqa: A002 - signature from stdlib
         pass
+
+    def translate_path(self, path):
+        # Like GitHub Pages, serve benchmark.html for /benchmark.
+        fs_path = super().translate_path(path)
+        if not os.path.exists(fs_path) and os.path.isfile(fs_path + ".html"):
+            return fs_path + ".html"
+        return fs_path
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
