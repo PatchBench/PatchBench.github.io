@@ -84,17 +84,17 @@ def _ticks(lo: float, hi: float, step: float) -> list[float]:
 def cost_scatter(agents: list[dict]) -> dict:
     """Solved rate vs. average cost per task, with a broken x-axis so the
     $20-budget Atlantis outlier fits without squashing everyone else."""
-    width, height = 960, 530
+    width, height = 960, 570
     left, right, top, bottom = 56, 24, 16, 56
     plot_w, plot_h = width - left - right, height - top - bottom
-    gap, outlier_w = 30, 64
+    gap, outlier_w = 30, 84
 
     # (domain_lo, domain_hi, tick_lo, tick_step, pixel_x0, pixel_width)
     segments = [
         (0.0, 2.6, 0.0, 0.5, left, plot_w - gap - outlier_w),
-        (16.0, 17.0, 16.0, 1.0, left + plot_w - outlier_w, outlier_w),
+        (15.6, 17.0, 16.0, 1.0, left + plot_w - outlier_w, outlier_w),  # starts before $16 to leave room after the break
     ]
-    y_lo, y_hi = 27.0, 62.0
+    y_lo, y_hi = 27.0, 65.0
 
     def sx(v: float) -> float:
         for lo, hi, _, _, x0, w in segments:

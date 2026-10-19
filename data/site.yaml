@@ -32,7 +32,6 @@ authors:
 
 links:
   paper: https://arxiv.org/abs/2609.04075
-  pdf: https://arxiv.org/pdf/2609.04075
   code: https://github.com/ai-sec-lab/PatchBench
   dataset: https://huggingface.co/datasets/ai-sec-lab/PatchBench
   issues: https://github.com/ai-sec-lab/PatchBench/issues

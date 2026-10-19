@@ -18,7 +18,7 @@
   ]);
   const fonts = document.fonts;
   const barFonts = fonts
-    ? Promise.all([fonts.load('600 21px "Fraunces"'), fonts.load('500 14px "Public Sans"')])
+    ? Promise.all([fonts.load('600 21px "Newsreader"'), fonts.load('500 14px "Public Sans"')])
     : Promise.resolve();
   Promise.race([barFonts.then(afterPaint), wait(800)])
     .then(() => root.classList.add("bar-ready"));

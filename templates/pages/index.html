@@ -15,7 +15,6 @@
       </p>
       <div class="actions">
         <a class="btn btn-primary" href="{{ site.links.paper }}" rel="noopener">Read the paper</a>
-        <a class="btn" href="{{ site.links.pdf }}" rel="noopener">PDF</a>
         <a class="btn" href="{{ site.links.code }}" rel="noopener">Code &amp; data</a>
         <a class="btn btn-quiet" href="#cite">Cite</a>
       </div>
@@ -28,7 +27,6 @@
       <div class="stat"><dt>Patching tasks</dt><dd>{{ site.stats.tasks }}</dd></div>
       <div class="stat"><dt>Real-world projects</dt><dd>{{ site.stats.projects }}</dd></div>
       <div class="stat"><dt>CWE types</dt><dd>{{ site.stats.cwes }}</dd></div>
-      <div class="stat"><dt>Agents evaluated</dt><dd>{{ board.count }}</dd></div>
       <div class="stat stat-accent"><dt>PoC-only inflation</dt><dd>{{ "%.2f"|format(board.inflation) }}×</dd></div>
     </dl>
   </div>
@@ -51,6 +49,10 @@
       <div class="table-wrap">
         <table class="board-table">
           <caption class="sr-only">PatchBench results, sorted by solved rate</caption>
+          <colgroup>
+            <col class="c-rank"><col class="c-agent"><col class="c-solved"><col class="c-bars">
+            <col class="c-rate"><col class="c-rate"><col class="c-semantic"><col class="c-cost"><col class="c-budget">
+          </colgroup>
           <thead>
             <tr>
               <th scope="col" class="col-rank">#</th>
@@ -86,7 +88,13 @@
                       {% if a.url %}<a href="{{ a.url }}" rel="noopener">{{ a.agent }}</a>{% else %}{{ a.agent }}{% endif %}
                       <span class="tag">AIxCC CRS</span>{% if a.note %}<sup class="fn-ref"><a href="#note-{{ a.rank }}" aria-label="Note">†</a></sup>{% endif %}
                     </span>
+                    {% set models = a.model.split(" + ") %}
+                    {% if models|length > 1 %}
+                    {% set model_rows = [] %}{% for m in models %}{% set _ = model_rows.append(["", m, none]) %}{% endfor %}
+                    <span class="agent-meta">{{ a.team }} · <span class="agent-models" tabindex="0" {{ tip(a.agent ~ " models", model_rows) }}>{{ models|length }} models<span class="sr-only"> ({{ models|join(" and ") }})</span></span></span>
+                    {% else %}
                     <span class="agent-meta">{{ a.team }} · {{ a.model }}</span>
+                    {% endif %}
                   {% endif %}
                 </div>
               </td>
@@ -103,7 +111,7 @@
               <td class="num">{{ a.poc|pct }}</td>
               <td class="num">{{ a.security|pct }}</td>
               <td class="num">{{ a.semantic|pct }}</td>
-              <td class="num">{{ a.avg_cost|usd }}{% if a.note %}<sup class="fn-ref" aria-hidden="true">†</sup>{% endif %}</td>
+              <td class="num">{{ a.avg_cost|usd }}{% if a.note %}<sup class="fn-ref"><a href="#note-{{ a.rank }}" aria-label="Note">†</a></sup>{% endif %}</td>
               <td class="num">{{ a.budget_exhausted|pct }}</td>
             </tr>
             {% endfor %}

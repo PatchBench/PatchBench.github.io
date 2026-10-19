@@ -48,10 +48,14 @@ data-tip-title="{{ title }}" data-tip='{{ rows|tojson }}'
 <div class="chart-scroll">
 <svg class="chart chart-scatter" viewBox="0 0 {{ c.width }} {{ c.height }}" role="img"
      aria-label="Scatter plot of solved rate against average cost per task for each agent. The same values are in the leaderboard table.">
+  {# Horizontal lines break at the axis gap. The broken-off Atlantis segment
+     starts a little before $16, so it reads as part of the same chart rather
+     than a separate box. #}
   <g class="grid">
-    {% for t in c.y_ticks %}
+    {% for t in c.y_ticks + [{"y": c.plot.top}] %}
       {% for s in c.segments %}<line x1="{{ s.x0 }}" x2="{{ s.x1 }}" y1="{{ t.y }}" y2="{{ t.y }}"/>{% endfor %}
     {% endfor %}
+    {% for t in c.x_ticks %}<line x1="{{ t.x }}" x2="{{ t.x }}" y1="{{ c.plot.top }}" y2="{{ c.plot.bottom }}"/>{% endfor %}
   </g>
   <g class="axis">
     {% for s in c.segments %}<line x1="{{ s.x0 }}" x2="{{ s.x1 }}" y1="{{ c.plot.bottom }}" y2="{{ c.plot.bottom }}"/>{% endfor %}
